@@ -20,7 +20,7 @@ containers:
   - "JavaBuildpack::Container::Main"
   - "JavaBuildpack::Container::Play"
   - "JavaBuildpack::Container::SpringBootCli"
-  - "JavaBuildpack::Container::Tomcat"
+  - "JavaBuildpack::Container::Jboss"
 jres:
   - "JavaBuildpack::Jre::OpenJdk"
 frameworks:
