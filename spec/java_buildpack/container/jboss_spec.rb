@@ -1,6 +1,7 @@
 # Encoding: utf-8
 require 'spec_helper'
 require 'java_buildpack/container/jboss'
+require 'java_buildpack/application'
 
 module JavaBuildpack::Container
 

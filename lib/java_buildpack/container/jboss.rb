@@ -17,7 +17,7 @@
 require 'java_buildpack/container'
 require 'java_buildpack/container/container_utils'
 require 'java_buildpack/util/format_duration'
-require 'java_buildpack/util/groovy_utils'
+require 'java_buildpack/util/java_main_utils'
 require 'java_buildpack/versioned_dependency_component'
 require 'tmpdir'
 
