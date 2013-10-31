@@ -34,10 +34,13 @@ module JavaBuildpack::Container
     def compile
       download { |file| expand file }
       parameterise_http_port
+      disable_welcome_root
+      link_application
+      create_dodeploy
     end
 
     def release
-      @java_opts << "-Dhttp.port=$PORT"
+      @java_opts << '-Dhttp.port=$PORT'
 
       java_home_string = "JAVA_HOME=#{@java_home}"
       java_opts_string = ContainerUtils.space("JAVA_OPTS=\"#{ContainerUtils.to_java_opts_s(@java_opts)}\"")
@@ -56,6 +59,12 @@ module JavaBuildpack::Container
     WEB_INF_DIRECTORY = 'WEB-INF'.freeze
 
     JBOSS_HOME = '.jboss'.freeze
+
+    def link_application
+      FileUtils.rm_rf root
+      FileUtils.mkdir_p root
+      @application.children.each { |child| FileUtils.ln_sf child.relative_path_from(root), root }
+    end
 
     def web_inf?
       @application.child(WEB_INF_DIRECTORY).exist?
@@ -83,6 +92,29 @@ module JavaBuildpack::Container
       original = File.open(standalone_config, 'r') { |f| f.read }
       modified = original.gsub(/<socket-binding name="http" port="8080"\/>/, '<socket-binding name="http" port="${http.port}"/>')
       File.open(standalone_config, 'w') { |f| f.write modified }
+    end
+
+    def disable_welcome_root
+      standalone_config = "#{jboss_home}/standalone/configuration/standalone.xml"
+      original = File.open(standalone_config, 'r') { |f| f.read }
+      modified = original.gsub(/<virtual-server name="default-host" enable-welcome-root="true">/, '<virtual-server name="default-host" enable-welcome-root="false">')
+      File.open(standalone_config, 'w') { |f| f.write modified }
+    end
+
+    def root
+      webapps + 'ROOT.war'
+    end
+
+    def jboss_home
+      @application.component_directory 'jboss'
+    end
+
+    def webapps
+      jboss_home + 'standalone' + 'deployments'
+    end
+
+    def create_dodeploy
+      FileUtils.touch(webapps + 'ROOT.war.dodeploy')
     end
 
   end
