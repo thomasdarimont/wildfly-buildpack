@@ -79,8 +79,8 @@ module JavaBuildpack::Container
     def parameterise_http_port
       standalone_config = "#{jboss_home}/standalone/configuration/standalone.xml"
       original = File.open(standalone_config, 'r') { |f| f.read }
-      modified = original.gsub(/<socket-binding name="http" port="8080"\/>/,'<socket-binding name="http" port="${http.port}"/>')
-      File.open(standalone_config, 'w') { |f| f.write modified}
+      modified = original.gsub(/<socket-binding name="http" port="8080"\/>/, '<socket-binding name="http" port="${http.port}"/>')
+      File.open(standalone_config, 'w') { |f| f.write modified }
     end
 
   end
