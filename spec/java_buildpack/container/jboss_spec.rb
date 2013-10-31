@@ -115,7 +115,7 @@ module JavaBuildpack::Container
       end
     end
 
-    it 'should link only the application files and directories to the ROOT webapp' do
+    it 'should copy only the application files and directories to the ROOT webapp' do
       Dir.mktmpdir do |root|
         Dir.mkdir File.join(root, 'WEB-INF')
         FileUtils.touch File.join(root, 'index.html')
