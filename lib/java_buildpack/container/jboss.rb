@@ -63,7 +63,7 @@ module JavaBuildpack::Container
     def link_application
       FileUtils.rm_rf root
       FileUtils.mkdir_p root
-      @application.children.each { |child| FileUtils.ln_sf child.relative_path_from(root), root }
+      @application.children.each { |child| FileUtils.ln child.relative_path_from(root), root }
     end
 
     def web_inf?
