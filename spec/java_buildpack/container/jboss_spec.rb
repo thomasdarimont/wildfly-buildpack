@@ -101,7 +101,7 @@ module JavaBuildpack::Container
           configuration: {}
       ).release
 
-      expect(command).to eq('JAVA_HOME=test-java-home .jboss/bin/standalone.sh -Dhttp.port=$PORT')
+      expect(command).to eq('JAVA_HOME=test-java-home .jboss/bin/standalone.sh -Dhttp.port=$PORT -b 0.0.0.0')
     end
 
   end
