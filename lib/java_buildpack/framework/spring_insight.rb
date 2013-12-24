@@ -14,9 +14,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-require 'java_buildpack/base_component'
+require 'java_buildpack/component/base_component'
 require 'java_buildpack/framework'
-require 'java_buildpack/util/service_utils'
 require 'tmpdir'
 require 'fileutils'
 require 'uri'
@@ -24,10 +23,10 @@ require 'uri'
 module JavaBuildpack::Framework
 
   # Encapsulates the detect, compile, and release functionality for enabling Insight auto configuration.
-  class SpringInsight < JavaBuildpack::BaseComponent
+  class SpringInsight < JavaBuildpack::Component::BaseComponent
 
     def initialize(context)
-      super('Spring Insight', context)
+      super(context)
       @version, @uri = supports? ? find_insight_agent : [nil, nil]
     end
 
@@ -36,27 +35,19 @@ module JavaBuildpack::Framework
     end
 
     def compile
-      download(@version, @uri + AGENT_DOWNLOAD_URI_SUFFIX) { |file| expand file } # TODO: AGENT_DOWNLOAD_URI_SUFFIX To be removed once the full path is included in VCAP_SERVICES see issue 58873498
+      download(@version, @uri.chomp('/') + AGENT_DOWNLOAD_URI_SUFFIX) { |file| expand file } # TODO: AGENT_DOWNLOAD_URI_SUFFIX To be removed once the full path is included in VCAP_SERVICES see issue 58873498
     end
 
     def release
-      weaver_jar =  @application.relative_path_to(Pathname.new Dir[File.join(insight_home, 'weaver', 'insight-weaver-*.jar')][0])
+      @droplet.java_opts
+      .add_javaagent(weaver_jar)
+      .add_system_property('insight.base', insight_directory)
+      .add_system_property('insight.logs', logs_directory)
+      .add_system_property('aspectj.overweaving', true)
+      .add_system_property('org.aspectj.tracing.factory', 'default')
+      .add_system_property('insight.transport.type', 'HTTP')
 
-      @java_opts << "-javaagent:#{weaver_jar}"
-      @java_opts << "-Dinsight.base=#{File.join INSIGHT_HOME, 'insight'}"
-      @java_opts << "-Dinsight.logs=#{File.join INSIGHT_HOME, 'insight', 'logs'}"
-      @java_opts << '-Daspectj.overweaving=true'
-      @java_opts << '-Dorg.aspectj.tracing.factory=default'
-      @java_opts << '-Dagent.http.protocol=http'
-      @java_opts << "-Dagent.http.host=#{URI(@uri).host}"
-      @java_opts << '-Dagent.http.port=80'
-      @java_opts << '-Dagent.http.context.path=insight'
-      @java_opts << '-Dagent.http.username=spring'
-      @java_opts << '-Dagent.http.password=insight'
-      @java_opts << '-Dagent.http.send.json=false'
-      @java_opts << '-Dagent.http.use.proxy=false'
-      @java_opts << '-Dinsight.transport.type=HTTP'
-      @java_opts << "-Dagent.name.override=#{@vcap_application[NAME_KEY]}"
+      add_agent_configuration
     end
 
     protected
@@ -66,42 +57,48 @@ module JavaBuildpack::Framework
     # @param [String] version the version of the dependency
     # @return [String] the unique identifier of the component
     def id(version)
-      "spring-insight=#{version}"
+      "#{SpringInsight.to_s.dash_case}=#{version}"
     end
 
     def supports?
-      JavaBuildpack::Util::ServiceUtils.find_service(@vcap_services, SERVICE_NAME)
+      @application.services.one_service? FILTER
     end
 
     private
 
-    AGENT_DOWNLOAD_URI_SUFFIX = 'services/config/agent-download'.freeze # TODO: To be removed once the full path is included in VCAP_SERVICES see issue 58873498
+    AGENT_DOWNLOAD_URI_SUFFIX = '/services/config/agent-download'.freeze # TODO: To be removed once the full path is included in VCAP_SERVICES see issue 58873498
 
-    EXTRA_APPLICATIONS_DIRECTORY = '.extra-applications'.freeze
+    FILTER = /insight/.freeze
 
-    CONTAINER_LIBS_DIRECTORY = '.container-libs'.freeze
+    def add_agent_configuration
+      @droplet.java_opts
+      .add_system_property('agent.http.protocol', 'http')
+      .add_system_property('agent.http.host', URI(@uri).host)
+      .add_system_property('agent.http.port', 80)
+      .add_system_property('agent.http.context.path', 'insight')
+      .add_system_property('agent.http.username', 'spring')
+      .add_system_property('agent.http.password', 'insight')
+      .add_system_property('agent.http.send.json', false)
+      .add_system_property('agent.http.use.proxy', false)
+      .add_system_property('agent.name.override', "'#{application_name}'")
+    end
 
-    INSIGHT_HOME = '.insight'.freeze
-
-    NAME_KEY = 'application_name'.freeze
-
-    SERVICE_NAME = /insight/.freeze
+    def application_name
+      @application.details['application_name']
+    end
 
     def expand(file)
-      expand_start_time = Time.now
-      print "       Expanding Spring Insight to #{INSIGHT_HOME} "
-
-      Dir.mktmpdir do |root|
-        agent_dir = unpack_agent_installer(root, file)
-        install_insight(agent_dir)
+      with_timing "Expanding Spring Insight to #{@droplet.sandbox.relative_path_from(@droplet.root)}" do
+        Dir.mktmpdir do |root|
+          agent_dir = unpack_agent_installer(Pathname.new(root), file)
+          install_insight(agent_dir)
+        end
       end
-
-      puts "(#{(Time.now - expand_start_time).duration})"
     end
 
     def unpack_agent_installer(root, file)
-      installer_dir = File.join root, 'installer'
-      agent_dir = File.join root, 'agent'
+      installer_dir = root + 'installer'
+      agent_dir = root + 'agent'
 
       FileUtils.mkdir_p(installer_dir)
       FileUtils.mkdir_p(agent_dir)
@@ -112,51 +109,92 @@ module JavaBuildpack::Framework
     end
 
     def install_insight(agent_dir)
-      weaver_directory = File.join insight_home, 'weaver'
-      insight_directory = File.join insight_home, 'insight'
-      insight_analyser_directory = File.join extra_applications_directory, 'insight-agent'
-      uber_agent_directory = File.join agent_dir, 'springsource-insight-uber-agent-*'
+      FileUtils.mkdir_p @droplet.sandbox
 
-      FileUtils.rm_rf insight_home
-      FileUtils.rm_rf insight_analyser_directory
-      FileUtils.mkdir_p container_libs_directory
-      FileUtils.mkdir_p extra_applications_directory
-      FileUtils.mkdir_p weaver_directory
-      FileUtils.mkdir_p insight_directory
+      root = Pathname.glob(agent_dir + 'springsource-insight-uber-agent-*')[0]
 
-      shell "mv #{File.join uber_agent_directory, 'agents', 'common', 'insight-weaver-*.jar'} #{weaver_directory}"
-      shell "mv #{File.join uber_agent_directory, 'agents', 'common', 'insight-bootstrap-generic-*.jar'} #{container_libs_directory}"
-      shell "mv #{File.join uber_agent_directory, 'agents', 'tomcat', '7', 'lib', 'insight-bootstrap-tomcat-common-*.jar'} #{container_libs_directory}"
-      shell "mv #{File.join uber_agent_directory, 'insight', 'collection-plugins'} #{insight_directory}"
-      shell "mv #{File.join uber_agent_directory, 'insight', 'conf'} #{insight_directory}"
-      shell "mv #{File.join uber_agent_directory, 'insight-agent'} #{insight_analyser_directory}"
-      shell "mv #{File.join uber_agent_directory, 'transport', 'http', 'insight-agent-http-*.jar'} #{File.join insight_analyser_directory, 'WEB-INF', 'lib'} "
+      init_container_libs root
+      init_extra_applications root
+      init_insight root
+      init_insight_analyzer root
+      init_weaver root
+    end
+
+    def init_container_libs(root)
+      move container_libs_directory,
+           root + 'agents/common/insight-bootstrap-generic-*.jar',
+           root + 'agents/tomcat/7/lib/insight-bootstrap-tomcat-common-*.jar'
+    end
+
+    def init_extra_applications(root)
+      move extra_applications_directory,
+           root + 'insight-agent'
+    end
+
+    def init_insight(root)
+      move insight_directory,
+           root + 'insight/collection-plugins',
+           root + 'insight/conf'
+    end
+
+    def init_insight_analyzer(root)
+      move insight_analyzer_directory + 'WEB-INF/lib',
+           root + 'transport/http/insight-agent-http-*.jar'
+    end
+
+    def init_weaver(root)
+      move weaver_directory,
+           root + 'agents/common/insight-weaver-*.jar'
     end
 
     def container_libs_directory
-      File.join @app_dir, CONTAINER_LIBS_DIRECTORY
+      @droplet.root + '.spring-insight/container-libs'
     end
 
     def extra_applications_directory
-      File.join @app_dir, EXTRA_APPLICATIONS_DIRECTORY
-    end
-
-    def uber_agent_zip(location)
-      candidates = Dir[File.join location, 'springsource-insight-uber-agent-*.zip']
-      fail 'There was not exactly one Uber Agent zip' if candidates.size != 1
-      candidates[0]
+      @droplet.root + '.spring-insight/extra-applications'
     end
 
     def find_insight_agent
-      service = JavaBuildpack::Util::ServiceUtils.find_service(@vcap_services, SERVICE_NAME)
+      service = @application.services.find_service FILTER
       version = service['label'].match(/(.*)-(.*)/)[2]
       uri = service['credentials']['dashboard_url']
 
       return version, uri # rubocop:disable RedundantReturn
     end
 
-    def insight_home
-      File.join @app_dir, INSIGHT_HOME
+    def insight_analyzer_directory
+      extra_applications_directory + 'insight-agent'
+    end
+
+    def insight_directory
+      @droplet.sandbox + 'insight'
+    end
+
+    def logs_directory
+      insight_directory + 'logs'
+    end
+
+    def move(destination, *globs)
+      FileUtils.mkdir_p destination
+
+      globs.each do |glob|
+        FileUtils.mv Pathname.glob(glob)[0], destination
+      end
+    end
+
+    def uber_agent_zip(location)
+      candidates = Pathname.glob(location + 'springsource-insight-uber-agent-*.zip')
+      fail 'There was not exactly one Uber Agent zip' if candidates.size != 1
+      candidates[0]
+    end
+
+    def weaver_directory
+      @droplet.sandbox + 'weaver'
+    end
+
+    def weaver_jar
+      (weaver_directory + 'insight-weaver-*.jar').glob[0]
     end
 
   end

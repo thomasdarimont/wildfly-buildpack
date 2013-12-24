@@ -14,10 +14,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-require 'java_buildpack/diagnostics/logger_factory'
+require 'java_buildpack/logging/logger_factory'
 require 'java_buildpack/repository'
-require 'java_buildpack/util/download_cache'
 require 'java_buildpack/repository/version_resolver'
+require 'java_buildpack/util/configuration_utils'
+require 'java_buildpack/util/cache/download_cache'
 require 'rbconfig'
 require 'yaml'
 
@@ -30,12 +31,14 @@ module JavaBuildpack::Repository
     #
     # @param [String] repository_root the root of the repository to create the index for
     def initialize(repository_root)
-      @index = {}
-      @logger = JavaBuildpack::Diagnostics::LoggerFactory.get_logger
-      JavaBuildpack::Util::DownloadCache.new.get("#{canonical repository_root}#{INDEX_PATH}") do |file| # TODO: Use global cache #50175265
-        index_content = YAML.load_file(file)
-        @logger.debug { index_content }
-        @index.merge! index_content
+      @logger = JavaBuildpack::Logging::LoggerFactory.get_logger RepositoryIndex
+
+      @default_repository_root = JavaBuildpack::Util::ConfigurationUtils.load('repository')['default_repository_root']
+      .chomp('/')
+
+      JavaBuildpack::Util::Cache::DownloadCache.new.get("#{canonical repository_root}#{INDEX_PATH}") do |file| # TODO: Use global cache #50175265
+        @index = YAML.load_file(file)
+        @logger.debug { @index }
       end
     end
 
@@ -46,7 +49,7 @@ module JavaBuildpack::Repository
     # @return [String] the URI of the file found
     def find_item(version)
       version = VersionResolver.resolve(version, @index.keys)
-      uri = @index[version.to_s]
+      uri     = @index[version.to_s]
       return version, uri # rubocop:disable RedundantReturn
     end
 
@@ -60,15 +63,19 @@ module JavaBuildpack::Repository
 
     def canonical(raw)
       cooked = raw
+      .gsub(/\{default.repository.root\}/, @default_repository_root)
       .gsub(/\{platform\}/, platform)
       .gsub(/\{architecture\}/, architecture)
+      .chomp('/')
       @logger.debug { "#{raw} expanded to #{cooked}" }
       cooked
     end
 
     def platform
-      if File.exists? '/etc/redhat-release'
-        File.open('/etc/redhat-release', 'r') { |f| "centos#{f.read.match(/CentOS release (\d)/)[1]}" }
+      redhat_release = Pathname.new('/etc/redhat-release')
+
+      if redhat_release.exist?
+        "centos#{redhat_release.read.match(/CentOS release (\d)/)[1]}"
       elsif `uname -s` =~ /Darwin/
         'mountainlion'
       elsif !`which lsb_release 2> /dev/null`.empty?

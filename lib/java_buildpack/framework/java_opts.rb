@@ -14,21 +14,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-require 'java_buildpack/base_component'
+require 'java_buildpack/component/base_component'
 require 'java_buildpack/framework'
+require 'java_buildpack/util/dash_case'
 require 'shellwords'
 
 module JavaBuildpack::Framework
 
   # Encapsulates the functionality for contributing custom Java options to an application.
-  class JavaOpts < JavaBuildpack::BaseComponent
-
-    def initialize(context)
-      super('JAVA_OPTS', context)
-    end
+  class JavaOpts < JavaBuildpack::Component::BaseComponent
 
     def detect
-      @configuration.key?(CONFIGURATION_PROPERTY) ? @parsable_component_name : nil
+      @configuration.key?(CONFIGURATION_PROPERTY) ? JavaOpts.to_s.dash_case : nil
     end
 
     def compile
@@ -38,16 +35,25 @@ module JavaBuildpack::Framework
     end
 
     def release
-      @java_opts.concat parsed_java_opts
+      java_opts = @droplet.java_opts
+
+      check_single_options java_opts
+      java_opts.concat parsed_java_opts
     end
 
     private
 
     CONFIGURATION_PROPERTY = 'java_opts'.freeze
 
+    def check_single_options(opts)
+      opts.each do |option|
+        fail "Invalid Java option contains more than one option: '#{option}'" if option.shellsplit.length > 1
+      end
+    end
+
     def memory_option?(option)
       option =~ /-Xms/ || option =~ /-Xmx/ || option =~ /-XX:MaxMetaspaceSize/ || option =~ /-XX:MaxPermSize/ ||
-          option =~ /-Xss/
+          option =~ /-Xss/ || option =~ /-XX:MetaspaceSize/ || option =~ /-XX:PermSize/
     end
 
     def parsed_java_opts

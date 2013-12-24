@@ -14,7 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-require 'java_buildpack/diagnostics/logger_factory'
+require 'java_buildpack/logging/logger_factory'
 require 'java_buildpack/jre'
 require 'java_buildpack/jre/memory/memory_range'
 
@@ -44,10 +44,10 @@ module JavaBuildpack::Jre
     # @param [MemoryRange, nil] range a user-specified range for the memory bucket or nil if the user did not specify a
     #                            range
     def initialize(name, weighting, range)
-      @name = MemoryBucket.validate_name name
+      @name      = validate_name name
       @weighting = validate_weighting weighting
-      @range = range ? validate_memory_range(range) : nil
-      logger = JavaBuildpack::Diagnostics::LoggerFactory.get_logger
+      @range     = range ? validate_memory_range(range) : nil
+      logger     = JavaBuildpack::Logging::LoggerFactory.get_logger MemoryBucket
       logger.debug { inspect }
     end
 
@@ -55,13 +55,13 @@ module JavaBuildpack::Jre
 
     private
 
-    def self.validate_name(name)
+    def validate_name(name)
       fail "Invalid MemoryBucket name '#{name}'" if name.nil? || name.to_s.size == 0
       name
     end
 
     def validate_weighting(weighting)
-      fail diagnose_weighting(weighting, 'not numeric') unless MemoryBucket.is_numeric weighting
+      fail diagnose_weighting(weighting, 'not numeric') unless is_numeric weighting
       fail diagnose_weighting(weighting, 'negative') if weighting < 0
       weighting
     end
@@ -70,7 +70,7 @@ module JavaBuildpack::Jre
       "Invalid weighting '#{@weighting}' for #{identify} : #{reason}"
     end
 
-    def self.is_numeric(w)
+    def is_numeric(w)
       Float(w) rescue false
     end
 

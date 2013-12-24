@@ -14,11 +14,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+require 'java_buildpack/component/versioned_dependency_component'
 require 'java_buildpack/container'
-require 'java_buildpack/container/container_utils'
+require 'java_buildpack/util/class_file_utils'
 require 'java_buildpack/util/format_duration'
 require 'java_buildpack/util/groovy_utils'
-require 'java_buildpack/versioned_dependency_component'
 require 'pathname'
 require 'set'
 require 'tmpdir'
@@ -27,48 +27,37 @@ module JavaBuildpack::Container
 
   # Encapsulates the detect, compile, and release functionality for applications running non-compiled Groovy
   # applications.
-  class Groovy < JavaBuildpack::VersionedDependencyComponent
+  class Groovy < JavaBuildpack::Component::VersionedDependencyComponent
 
     def initialize(context)
-      super('Groovy', context) { |candidate_version| candidate_version.check_size(3) }
+      super(context) { |candidate_version| candidate_version.check_size(3) }
     end
 
     def compile
-      download_zip groovy_home
+      download_zip
     end
 
     def release
-      java_home_string = "JAVA_HOME=#{@java_home}"
-      java_opts_string = ContainerUtils.space("JAVA_OPTS=\"#{ContainerUtils.to_java_opts_s(@java_opts)}\"")
-      groovy_string = ContainerUtils.space(File.join GROOVY_HOME, 'bin', 'groovy')
-      classpath_string = ContainerUtils.space(classpath)
-      main_groovy_string = ContainerUtils.space(main_groovy)
-      other_groovy_string = ContainerUtils.space(other_groovy)
-
-      "#{java_home_string}#{java_opts_string}#{groovy_string}#{classpath_string}#{main_groovy_string}#{other_groovy_string}"
+      [
+          @droplet.java_home.as_env_var,
+          @droplet.java_opts.as_env_var,
+          "$PWD/#{(@droplet.sandbox + 'bin/groovy').relative_path_from(@droplet.root)}",
+          @droplet.additional_libraries.as_classpath,
+          relative_main_groovy,
+          relative_other_groovy
+      ].compact.join(' ')
     end
 
     protected
 
     def supports?
-      main_groovy
+      JavaBuildpack::Util::ClassFileUtils.class_files(@application).empty? && main_groovy
     end
 
     private
 
-    GROOVY_HOME = '.groovy'.freeze
-
-    def classpath
-      classpath = ContainerUtils.libs(@app_dir, @lib_directory)
-      classpath.any? ? "-cp #{classpath.join(':')}" : ''
-    end
-
-    def groovy_home
-      File.join @app_dir, GROOVY_HOME
-    end
-
     def main_groovy
-      candidates = JavaBuildpack::Util::GroovyUtils.groovy_files(@app_dir)
+      candidates = JavaBuildpack::Util::GroovyUtils.groovy_files(@application)
 
       candidate = []
       candidate << main_method(candidates)
@@ -80,9 +69,9 @@ module JavaBuildpack::Container
     end
 
     def other_groovy
-      other_groovy = JavaBuildpack::Util::GroovyUtils.groovy_files(@app_dir)
+      other_groovy = JavaBuildpack::Util::GroovyUtils.groovy_files(@application)
       other_groovy.delete(main_groovy)
-      other_groovy.join(' ')
+      other_groovy
     end
 
     def main_method(candidates)
@@ -91,6 +80,14 @@ module JavaBuildpack::Container
 
     def non_pogo(candidates)
       reject(candidates) { |file| JavaBuildpack::Util::GroovyUtils.pogo? file }
+    end
+
+    def relative_main_groovy
+      main_groovy.relative_path_from(@application.root)
+    end
+
+    def relative_other_groovy
+      other_groovy.map { |gf| gf.relative_path_from(@application.root) }
     end
 
     def shebang(candidates)
@@ -106,7 +103,7 @@ module JavaBuildpack::Container
     end
 
     def open(candidate, &block)
-      File.open(File.join(@app_dir, candidate), 'r', external_encoding: 'UTF-8', &block)
+      candidate.open('r', external_encoding: 'UTF-8', &block)
     end
 
   end
