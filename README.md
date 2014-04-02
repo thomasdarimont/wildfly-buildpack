@@ -1,9 +1,11 @@
-# Cloud Foundry Java Buildpack
+# Cloud Foundry Java Buildpack - JBoss
 [![Build Status](https://travis-ci.org/cloudfoundry/java-buildpack.png?branch=master)](https://travis-ci.org/cloudfoundry/java-buildpack)
 [![Dependency Status](https://gemnasium.com/cloudfoundry/java-buildpack.png)](http://gemnasium.com/cloudfoundry/java-buildpack)
 [![Code Climate](https://codeclimate.com/github/cloudfoundry/java-buildpack.png)](https://codeclimate.com/github/cloudfoundry/java-buildpack)
 
 The `java-buildpack` is a [Cloud Foundry][] buildpack for running Java applications.  It is designed to run most Java applications with no additional configuration, but supports configuration of the standard components, and extension to add custom components.
+
+This buildpack has been customised to use JBoss Application Server. The standard Java Buildpack currently uses Tomcat.
 
 ## Usage
 To use this buildpack specify the URI of the repository when pushing an application to Cloud Foundry:
