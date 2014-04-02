@@ -16,49 +16,68 @@
 
 require 'java_buildpack/util/play'
 require 'java_buildpack/util/play/base'
+require 'java_buildpack/util/start_script'
+require 'shellwords'
 
-module JavaBuildpack::Util::Play
+module JavaBuildpack
+  module Util
+    module Play
 
-  # Encapsulate inspection and modification of Play applications from Play 2.2.0 onwards.
-  class Post22 < Base
+      # Encapsulate inspection and modification of Play applications from Play 2.2.0 onwards.
+      class Post22 < Base
 
-    protected
+        protected
 
-    def augment_classpath
-      additional_classpath = @droplet.additional_libraries.sort.map do |additional_library|
-        "$app_home/#{additional_library.relative_path_from(start_script.dirname)}"
+        # (see JavaBuildpack::Util::Play::Base#augment_classpath)
+        def augment_classpath
+          additional_classpath = @droplet.additional_libraries.sort.map do |additional_library|
+            "$app_home/#{additional_library.relative_path_from(start_script.dirname)}"
+          end
+
+          update_file start_script,
+                      /^declare -r app_classpath=\"(.*)\"$/, "declare -r app_classpath=\"#{additional_classpath.join(':')}:\\1\""
+        end
+
+        # (see JavaBuildpack::Util::Play::Base#java_opts)
+        def java_opts
+          java_opts = @droplet.java_opts
+
+          java_opts.each do |option|
+            if option.shellsplit.length > 1 && !bash_expression?(option)
+              fail "Invalid Java option contains more than one option: '#{option}'"
+            end
+          end
+
+          java_opts.map { |java_opt| "-J#{java_opt}" }
+        end
+
+        # (see JavaBuildpack::Util::Play::Base#lib_dir)
+        def lib_dir
+          root + 'lib'
+        end
+
+        # (see JavaBuildpack::Util::Play::Base#start_script)
+        def start_script
+          JavaBuildpack::Util.start_script root
+        end
+
+        protected
+
+        # Returns the root of the play application
+        #
+        # @return [Pathname] the root of the play application
+        def root
+          fail "Method 'root' must be defined"
+        end
+
+        private
+
+        def bash_expression?(option)
+          option =~ /\$\(expr/
+        end
+
       end
 
-      update_file start_script,
-                  /^declare -r app_classpath=\"(.*)\"$/, "declare -r app_classpath=\"#{additional_classpath.join(':')}:\\1\""
     end
-
-    def java_opts
-      @droplet.java_opts.map { |java_opt| "-J#{java_opt}" }
-    end
-
-    def lib_dir
-      root + 'lib'
-    end
-
-    def start_script
-      if root
-        candidates = (root + 'bin/*').glob
-        candidates.size == 1 ? candidates.first : candidates.find { |candidate| Pathname.new("#{candidate}.bat").exist? }
-      else
-        nil
-      end
-    end
-
-    protected
-
-    # Returns the root of the play application
-    #
-    # @return [Pathname] the root of the play application
-    def root
-      fail "Method 'root' must be defined"
-    end
-
   end
-
 end

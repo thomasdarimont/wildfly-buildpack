@@ -19,70 +19,72 @@ require 'java_buildpack/component/versioned_dependency_component'
 require 'java_buildpack/container'
 require 'java_buildpack/util/java_main_utils'
 
-module JavaBuildpack::Container
+module JavaBuildpack
+  module Container
 
-  # Encapsulates the detect, compile, and release functionality for applications running Spring Boot CLI
-  # applications.
-  class Jboss < JavaBuildpack::Component::VersionedDependencyComponent
+    # Encapsulates the detect, compile, and release functionality for applications running Spring Boot CLI
+    # applications.
+    class Jboss < JavaBuildpack::Component::VersionedDependencyComponent
 
-    def compile
-      download_tar
-      update_configuration
-      copy_application
-      create_dodeploy
-    end
+      def compile
+        download_tar
+        update_configuration
+        copy_application
+        create_dodeploy
+      end
 
-    def release
-      @droplet.java_opts.add_system_property 'http.port', '$PORT'
+      def release
+        @droplet.java_opts.add_system_property 'http.port', '$PORT'
 
-      [
+        [
           @droplet.java_home.as_env_var,
           @droplet.java_opts.as_env_var,
           "$PWD/#{(@droplet.sandbox + 'bin/standalone.sh').relative_path_from(@droplet.root)}",
           '-b',
           '0.0.0.0'
-      ].compact.join(' ')
-    end
+        ].compact.join(' ')
+      end
 
-    protected
+      protected
 
-    def supports?
-      web_inf? && !JavaBuildpack::Util::JavaMainUtils.main_class(@application)
-    end
+      def supports?
+        web_inf? && !JavaBuildpack::Util::JavaMainUtils.main_class(@application)
+      end
 
-    private
+      private
 
-    def copy_application
-      FileUtils.mkdir_p root
-      @application.root.children.each { |child| FileUtils.cp_r child, root }
-    end
+      def copy_application
+        FileUtils.mkdir_p root
+        @application.root.children.each { |child| FileUtils.cp_r child, root }
+      end
 
-    def create_dodeploy
-      FileUtils.touch(webapps + 'ROOT.war.dodeploy')
-    end
+      def create_dodeploy
+        FileUtils.touch(webapps + 'ROOT.war.dodeploy')
+      end
 
-    def root
-      webapps + 'ROOT.war'
-    end
+      def root
+        webapps + 'ROOT.war'
+      end
 
-    def update_configuration
-      standalone_config = @droplet.sandbox + 'standalone/configuration/standalone.xml'
+      def update_configuration
+        standalone_config = @droplet.sandbox + 'standalone/configuration/standalone.xml'
 
-      modified = standalone_config.read
+        modified = standalone_config.read
         .gsub(/<virtual-server name="default-host" enable-welcome-root="true">/, '<virtual-server name="default-host" enable-welcome-root="false">')
         .gsub(/<socket-binding name="http" port="8080"\/>/, '<socket-binding name="http" port="${http.port}"/>')
 
-      standalone_config.open('w') { |f| f.write modified }
-    end
+        standalone_config.open('w') { |f| f.write modified }
+      end
 
-    def webapps
-      @droplet.sandbox + 'standalone/deployments'
-    end
+      def webapps
+        @droplet.sandbox + 'standalone/deployments'
+      end
 
-    def web_inf?
-      (@application.root + 'WEB-INF').exist?
+      def web_inf?
+        (@application.root + 'WEB-INF').exist?
+      end
+
     end
 
   end
-
 end

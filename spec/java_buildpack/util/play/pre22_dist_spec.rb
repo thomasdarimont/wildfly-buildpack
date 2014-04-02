@@ -21,11 +21,6 @@ require 'java_buildpack/util/play/pre22_dist'
 describe JavaBuildpack::Util::Play::Pre22Dist do
   include_context 'component_helper'
 
-  before do
-    java_home
-    java_opts
-  end
-
   context do
 
     let(:trigger) { described_class.new(droplet).supports? }
@@ -76,7 +71,7 @@ describe JavaBuildpack::Util::Play::Pre22Dist do
     it 'should add additional libraries to lib directory of a Play 2.0 dist application' do
       play_app.compile
 
-      lib_dir = app_dir + 'application-root/lib'
+      lib_dir    = app_dir + 'application-root/lib'
       test_jar_1 = lib_dir + 'test-jar-1.jar'
       test_jar_2 = lib_dir + 'test-jar-2.jar'
 
@@ -90,8 +85,8 @@ describe JavaBuildpack::Util::Play::Pre22Dist do
     end
 
     it 'should return command' do
-      expect(play_app.release).to eq("PATH=#{java_home.root}/bin:$PATH #{java_home.as_env_var} $PWD/application-root/start " +
-                                         'test-opt-2 test-opt-1 -Dhttp.port=$PORT')
+      expect(play_app.release).to eq("PATH=#{java_home.root}/bin:$PATH #{java_home.as_env_var} $PWD/application-root/start " \
+                                       'test-opt-2 test-opt-1 -Dhttp.port=$PORT')
     end
   end
 
@@ -111,8 +106,8 @@ describe JavaBuildpack::Util::Play::Pre22Dist do
     end
 
     it 'should return command' do
-      expect(play_app.release).to eq("PATH=#{java_home.root}/bin:$PATH #{java_home.as_env_var} $PWD/application-root/start " +
-                                         'test-opt-2 test-opt-1 -Dhttp.port=$PORT')
+      expect(play_app.release).to eq("PATH=#{java_home.root}/bin:$PATH #{java_home.as_env_var} $PWD/application-root/start " \
+                                       'test-opt-2 test-opt-1 -Dhttp.port=$PORT')
     end
 
   end

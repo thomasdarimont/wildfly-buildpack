@@ -24,14 +24,14 @@ Users may optionally provide their own PostgreSQL service. A user-provided Postg
 ## Configuration
 For general information on configuring the buildpack, refer to [Configuration and Extension][].
 
-The framework can be configured by modifying the [`config/postgresql_jdbc.yml`][] file.  The framework uses the [`Repository` utility support][repositories] and so it supports the [version syntax][] defined there.
+The framework can be configured by modifying the [`config/postgresql_jdbc.yml`][] file in the buildpack fork.  The framework uses the [`Repository` utility support][repositories] and so it supports the [version syntax][] defined there.
 
 | Name | Description
 | ---- | -----------
 | `repository_root` | The URL of the PostgreSQL JDBC repository index ([details][repositories]).
 | `version` | The version of PostgreSQL JDBC to use. Candidate versions can be found in [this listing][].
 
-[Configuration and Extension]: ../README.md#Configuration-and-Extension
+[Configuration and Extension]: ../README.md#configuration-and-extension
 [`config/postgresql_jdbc.yml`]: ../config/postgresql_jdbc.yml
 [PostgreSQL Service]: http://www.postgresql.org
 [repositories]: extending-repositories.md

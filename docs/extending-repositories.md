@@ -59,7 +59,7 @@ end
 ## Configuration
 For general information on configuring the buildpack, refer to [Configuration and Extension][].
 
-Repositories can be configured by modifying the [`config/repository.yml`][] file.
+Repositories can be configured by modifying the [`config/repository.yml`][] file in the buildpack fork.
 
 | Name | Description
 | ---- | -----------
@@ -85,6 +85,6 @@ In addition to declaring a specific versions to use, you can also specify a boun
 
 [`config/repository.yml`]: ../config/repository.yml
 [`JavaBuildpack::Repository::ConfiguredItem`]: ../lib/java_buildpack/repository/configured_item.rb
-[Configuration and Extension]: ../README.md#Configuration-and-Extension
+[Configuration and Extension]: ../README.md#configuration-and-extension
 [example]: http://download.pivotal.io.s3.amazonaws.com/openjdk/lucid/x86_64/index.yml
 

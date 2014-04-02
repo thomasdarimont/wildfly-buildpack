@@ -26,17 +26,19 @@ When binding AppDynamics using a user-provided service, it must have name or tag
 ## Configuration
 For general information on configuring the buildpack, refer to [Configuration and Extension][].
 
-The framework can be configured by modifying the [`config/app_dynamics_agent.yml`][] file.  The framework uses the [`Repository` utility support][repositories] and so it supports the [version syntax][] defined there.
+The framework can be configured by modifying the [`config/app_dynamics_agent.yml`][] file in the buildpack fork.  The framework uses the [`Repository` utility support][repositories] and so it supports the [version syntax][] defined there.
 
 | Name | Description
 | ---- | -----------
 | `repository_root` | The URL of the AppDynamics repository index ([details][repositories]).
 | `version` | The version of AppDynamics to use. Candidate versions can be found in [this listing][].
 
+### Additional Resources
+The framework can also be configured by overlaying a set of resources on the default distribution.  To do this, add files to the `resources/app_dynamics_agent` directory in the buildpack fork.  For example, to override the default `app-agent-config.xml` add your custom file to `resources/app_dynamics_agent/conf/app-agent-config.xml`.
 
 [`config/app_dynamics_agent.yml`]: ../config/app_dynamics_agent.yml
 [AppDynamics Service]: http://www.appdynamics.com
-[Configuration and Extension]: ../README.md#Configuration-and-Extension
+[Configuration and Extension]: ../README.md#configuration-and-extension
 [repositories]: extending-repositories.md
 [this listing]: http://download.pivotal.io.s3.amazonaws.com/app-dynamics/index.yml
 [version syntax]: extending-repositories.md#version-syntax-and-ordering

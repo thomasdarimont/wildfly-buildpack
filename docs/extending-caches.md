@@ -1,5 +1,5 @@
 # Caches
-Many components will want to cache large files that are downloaded for applications.  The buildpack provides a cache abstraction to encapsulate this caching behavior.  The cache abstraction is comprised of three cache types each with the same signature.
+Many components will want to cache large files that are downloaded for applications.  The buildpack provides a cache abstraction to encapsulate this caching behavior.  The cache abstraction is comprised of two cache types each with the same signature.
 
 ```ruby
 # Retrieves an item from the cache.  Retrieval of the item uses the following algorithm:
@@ -20,13 +20,13 @@ Many components will want to cache large files that are downloaded for applicati
 #                     item is already in the cache, to validate that the item is up to date
 # @yieldparam [File] file the file representing the cached item. In order to ensure that the file is not changed or
 #                    deleted while it is being used, the cached item can only be accessed as part of a block.
-# @return [void]
+# @return [Void]
 def get(uri)
 
 # Remove an item from the cache
 #
 # @param [String] uri the URI of the item to remove
-# @return [void]
+# @return [Void]
 def evict(uri)
 ```
 
@@ -41,14 +41,14 @@ end
 ## Configuration
 For general information on configuring the buildpack, refer to [Configuration and Extension][].
 
-Caching can be configured by modifying the [`config/cache.yml`][] file.
+Caching can be configured by modifying the [`config/cache.yml`][] file in the buildpack fork.
 
 | Name | Description
 | ---- | -----------
 | `remote_downloads` | This property can take the value `enabled` or `disabled`. <p>The default value of `enabled` means that the buildpack will check the internet connection and remember the result for the remainder of the buildpack invocation. If the internet is available, it will then be used to download files. If the internet is not available, cache will be consulted instead. <p>Alternatively, the property may be set to `disabled` which avoids the check for an internet connection, does not attempt downloads, and consults the cache instead.
 
 ## `JavaBuildpack::Util::Cache::DownloadCache`
-The [`DownloadCache`][] is the most generic of the three caches.  It allows you to create a cache that persists files any that write access is available.  The constructor signature looks the following:
+The [`DownloadCache`][] is the most generic of the two caches.  It allows you to create a cache that persists files any that write access is available.  The constructor signature looks the following:
 
 ```ruby
 # Creates an instance of the cache that is backed by the filesystem rooted at +cache_root+
@@ -68,19 +68,7 @@ The [`ApplicationCache`][] is a cache that persists files into the application c
 def initialize
 ```
 
-## `JavaBuildpack::Util::Cache::GlobalCache`
-The [`GlobalCache`][] is a cache that persists files into the global cache passed to all scripts.  It examines `ENV['BUILDPACK_CACHE']` for the cache location and configures itself accordingly.
-
-```ruby
-# Creates an instance that is configured to use the global cache.  The global cache location is defined by the
-# +BUILDPACK_CACHE+ environment variable
-#
-# @raise if the +BUILDPACK_CACHE+ environment variable is +nil+
-def initialize
-```
-
 [`ApplicationCache`]: ../lib/java_buildpack/util/cache/application_cache.rb
 [`config/cache.yml`]: ../config/cache.yml
 [`DownloadCache`]: ../lib/java_buildpack/util/cache/download_cache.rb
-[`GlobalCache`]: ../lib/java_buildpack/util/cache/global_cache.rb
-[Configuration and Extension]: ../README.md#Configuration-and-Extension
+[Configuration and Extension]: ../README.md#configuration-and-extension

@@ -15,23 +15,16 @@
 # limitations under the License.
 
 require 'spec_helper'
+require 'logging_helper'
 require 'java_buildpack/util/cache/internet_availability'
 
 shared_context 'internet_availability_helper' do
+  include_context 'logging_helper'
 
-  # Reset cache and honour example metadata for cache.
+  # Re-initialize internet availability
   before do |example|
-    JavaBuildpack::Util::Cache::InternetAvailability.clear_internet_availability
-    JavaBuildpack::Util::Cache::InternetAvailability.store_internet_availability true if example.metadata[:skip_availability_check]
-  end
-
-  ############
-  # Run test #
-  ############
-
-  # Reset cache
-  after do
-    JavaBuildpack::Util::Cache::InternetAvailability.clear_internet_availability
+    JavaBuildpack::Util::Cache::InternetAvailability.instance.send :initialize
+    JavaBuildpack::Util::Cache::InternetAvailability.instance.available false if example.metadata[:disable_internet]
   end
 
 end

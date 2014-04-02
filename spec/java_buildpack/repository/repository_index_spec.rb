@@ -16,7 +16,6 @@
 
 require 'spec_helper'
 require 'application_helper'
-require 'buildpack_cache_helper'
 require 'logging_helper'
 require 'fileutils'
 require 'java_buildpack/repository/repository_index'
@@ -36,7 +35,7 @@ describe JavaBuildpack::Repository::RepositoryIndex do
   end
 
   it 'should load index' do
-    allow(application_cache).to receive(:get).with(%r(/test-uri/index\.yml))
+    allow(application_cache).to receive(:get).with(%r{/test-uri/index\.yml})
                                 .and_yield(Pathname.new('spec/fixtures/test-index.yml').open)
     allow(JavaBuildpack::Repository::VersionResolver).to receive(:resolve).with('test-version', %w(resolved-version))
                                                          .and_return('resolved-version')
@@ -47,7 +46,7 @@ describe JavaBuildpack::Repository::RepositoryIndex do
   end
 
   it 'should cope with trailing slash in repository URI' do
-    allow(application_cache).to receive(:get).with(%r(/test-uri/index\.yml))
+    allow(application_cache).to receive(:get).with(%r{/test-uri/index\.yml})
                                 .and_yield(Pathname.new('spec/fixtures/test-index.yml').open)
     allow(JavaBuildpack::Repository::VersionResolver).to receive(:resolve).with('test-version', %w(resolved-version))
                                                          .and_return('resolved-version')
@@ -61,26 +60,9 @@ describe JavaBuildpack::Repository::RepositoryIndex do
     allow(JavaBuildpack::Util::ConfigurationUtils).to receive(:load).with('repository')
                                                       .and_return('default_repository_root' => 'http://default-repository-root/')
     expect(application_cache).to receive(:get).with('http://default-repository-root/test-uri/index.yml')
-                                .and_yield(Pathname.new('spec/fixtures/test-index.yml').open)
+                                 .and_yield(Pathname.new('spec/fixtures/test-index.yml').open)
 
     described_class.new('{default.repository.root}/test-uri')
-  end
-
-  context do
-    include_context 'buildpack_cache_helper'
-
-    it 'should use the read-only buildpack cache when index.yaml cannot be downloaded because the internet is not available' do
-      stub_request(:get, 'http://foo.com/index.yml').to_raise(SocketError)
-      allow(JavaBuildpack::Util::Cache::DownloadCache).to receive(:new).and_call_original
-
-      FileUtils.mkdir_p java_buildpack_cache_dir
-      FileUtils.cp 'spec/fixtures/stashed_repository_index.yml', java_buildpack_cache_dir + 'http:%2F%2Ffoo.com%2Findex.yml.cached'
-
-      version, uri = described_class.new('http://foo.com').find_item(JavaBuildpack::Util::TokenizedVersion.new('1.0.+'))
-
-      expect(version).to eq(JavaBuildpack::Util::TokenizedVersion.new('1.0.1'))
-      expect(uri).to eq('http://foo.com/test.txt')
-    end
   end
 
   it 'should handle Centos correctly' do
@@ -98,7 +80,7 @@ describe JavaBuildpack::Repository::RepositoryIndex do
 
     described_class.new('{platform}/{architecture}/test-uri')
 
-    expect(application_cache).to have_received(:get).with %r(centos6/x86_64/test-uri/index\.yml)
+    expect(application_cache).to have_received(:get).with %r{centos6/x86_64/test-uri/index\.yml}
   end
 
   it 'should handle Mac OS X correctly' do
@@ -109,7 +91,7 @@ describe JavaBuildpack::Repository::RepositoryIndex do
 
     described_class.new('{platform}/{architecture}/test-uri')
 
-    expect(application_cache).to have_received(:get).with %r(mountainlion/x86_64/test-uri/index\.yml)
+    expect(application_cache).to have_received(:get).with %r{mountainlion/x86_64/test-uri/index\.yml}
   end
 
   it 'should handle Ubuntu correctly' do
@@ -122,7 +104,7 @@ describe JavaBuildpack::Repository::RepositoryIndex do
 
     described_class.new('{platform}/{architecture}/test-uri')
 
-    expect(application_cache).to have_received(:get).with %r(precise/x86_64/test-uri/index\.yml)
+    expect(application_cache).to have_received(:get).with %r{precise/x86_64/test-uri/index\.yml}
   end
 
   it 'should handle unknown OS correctly' do

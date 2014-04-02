@@ -70,7 +70,7 @@ describe JavaBuildpack::Container::Jboss do
   it 'should return command',
      app_fixture: 'container_tomcat' do
 
-    expect(component.release).to eq("#{java_home.as_env_var} JAVA_OPTS=\"-Dhttp.port=$PORT test-opt-1 test-opt-2\" " +
+    expect(component.release).to eq("#{java_home.as_env_var} JAVA_OPTS=\"test-opt-2 test-opt-1 -Dhttp.port=$PORT\" " \
                                         '$PWD/.java-buildpack/jboss/bin/standalone.sh -b 0.0.0.0')
   end
 
