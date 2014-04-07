@@ -73,6 +73,8 @@ module JavaBuildpack
 
       FILTER = /insight/.freeze
 
+      private_constant :AGENT_DOWNLOAD_URI_SUFFIX, :FILTER
+
       def add_agent_configuration
         @droplet.java_opts
         .add_system_property('agent.http.protocol', 'http')
@@ -156,7 +158,7 @@ module JavaBuildpack
         uri         = credentials['dashboard_url']
         id          = credentials['agent_username']
         pass        = credentials['agent_password']
-        return version, uri, id, pass # rubocop:disable RedundantReturn
+        [version, uri, id, pass]
       end
 
       def insight_directory

@@ -60,7 +60,7 @@ module JavaBuildpack
       # Convert this to a string
       #
       # @return [String] a string representation of this tokenized version
-      def to_s # rubocop:disable TrivialAccessors
+      def to_s
         @version
       end
 
@@ -74,7 +74,9 @@ module JavaBuildpack
 
       private
 
-      COLLATING_SEQUENCE = ['-', '.'] + ('a'..'z').to_a + ('A'..'Z').to_a + ('0'..'9').to_a
+      COLLATING_SEQUENCE = (['-', '.'] + ('a'..'z').to_a + ('A'..'Z').to_a + ('0'..'9').to_a).freeze
+
+      private_constant :COLLATING_SEQUENCE
 
       def char_compare(c1, c2)
         COLLATING_SEQUENCE.index(c1) <=> COLLATING_SEQUENCE.index(c2)
@@ -93,7 +95,7 @@ module JavaBuildpack
           fail "Invalid major or minor version '#{major_or_minor}'" unless valid_major_minor_or_micro major_or_minor
         end
 
-        return major_or_minor, tail # rubocop:disable RedundantReturn
+        [major_or_minor, tail]
       end
 
       def micro_and_qualifier(s)
@@ -109,7 +111,7 @@ module JavaBuildpack
           fail "Invalid qualifier '#{qualifier}'" unless valid_qualifier qualifier
         end
 
-        return micro, qualifier # rubocop:disable RedundantReturn
+        [micro, qualifier]
       end
 
       def minimum_qualifier_length(a, b)
@@ -139,7 +141,7 @@ module JavaBuildpack
         each do |value|
           fail "Invalid version '#{@version}': wildcards are not allowed this context" if value == WILDCARD && !allow_wildcards
 
-          fail "Invalid version '#{@version}': no characters are allowed after a wildcard" if wildcarded && !value.nil?
+          fail "Invalid version '#{@version}': no characters are allowed after a wildcard" if wildcarded && value
           wildcarded = true if value == WILDCARD
         end
         fail "Invalid version '#{@version}': missing component" if !wildcarded && compact.length < 3

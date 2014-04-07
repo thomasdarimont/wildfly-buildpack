@@ -51,6 +51,8 @@ module Package
 
     PLATFORM_PATTERN = /\{platform\}/.freeze
 
+    private_constant :ARCHITECTURE_PATTERN, :DEFAULT_REPOSITORY_ROOT_PATTERN, :PLATFORM_PATTERN
+
     def augment(raw, pattern, candidates, &block)
       if raw.respond_to? :map
         raw.map(&block)
@@ -137,6 +139,8 @@ module Package
 
       configurations.each do |configuration|
         index_uris(configuration).each do |index_uri|
+          multitask PACKAGE_NAME => [cache_task(index_uri)]
+
           @cache.get(index_uri) do |f|
             index = YAML.load f
             uris << index[version(configuration, index).to_s]

@@ -93,7 +93,9 @@ module JavaBuildpack
 
     BUILDPACK_MESSAGE = '-----> Java Buildpack Version: %s'.freeze
 
-    LOAD_ROOT = Pathname.new(__FILE__).dirname + '..'
+    LOAD_ROOT = (Pathname.new(__FILE__).dirname + '..').freeze
+
+    private_constant :BUILDPACK_MESSAGE, :LOAD_ROOT
 
     def initialize(app_dir, application)
       @logger            = Logging::LoggerFactory.instance.get_logger Buildpack
@@ -130,7 +132,8 @@ module JavaBuildpack
         context      = {
           application:   application,
           configuration: Util::ConfigurationUtils.load(component_id),
-          droplet:       Component::Droplet.new(additional_libraries, component_id, java_home, java_opts, root) }
+          droplet:       Component::Droplet.new(additional_libraries, component_id, java_home, java_opts, root)
+        }
 
         component.constantize.new(context)
       end
