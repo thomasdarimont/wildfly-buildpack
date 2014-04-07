@@ -26,6 +26,7 @@ module JavaBuildpack
     # applications.
     class Jboss < JavaBuildpack::Component::VersionedDependencyComponent
 
+      # (see JavaBuildpack::Component::BaseComponent#compile)
       def compile
         download_tar
         update_configuration
@@ -33,6 +34,7 @@ module JavaBuildpack
         create_dodeploy
       end
 
+      # (see JavaBuildpack::Component::BaseComponent#release)
       def release
         @droplet.java_opts.add_system_property 'http.port', '$PORT'
 
@@ -47,6 +49,7 @@ module JavaBuildpack
 
       protected
 
+      # (see JavaBuildpack::Component::VersionedDependencyComponent#supports?)
       def supports?
         web_inf? && !JavaBuildpack::Util::JavaMainUtils.main_class(@application)
       end
