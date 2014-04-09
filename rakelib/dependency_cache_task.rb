@@ -32,7 +32,7 @@ module Package
     include Package
 
     def initialize
-      if OFFLINE
+      if BUILDPACK_VERSION.offline
         JavaBuildpack::Logging::LoggerFactory.instance.setup "#{BUILD_DIR}/"
 
         @default_repository_root = default_repository_root
@@ -112,7 +112,7 @@ module Package
       if repository_configuration?(configuration)
         configurations << configuration
       else
-        configurations << configuration.values.map { |v| configurations(v) }
+        configuration.values.each { |v| configurations << configurations(v) if v.is_a? Hash }
       end
 
       configurations
