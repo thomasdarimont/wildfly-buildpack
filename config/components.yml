@@ -22,6 +22,7 @@ containers:
   - "JavaBuildpack::Container::Jboss"
   - "JavaBuildpack::Container::PlayFramework"
   - "JavaBuildpack::Container::Ratpack"
+  - "JavaBuildpack::Container::SpringBoot"
   - "JavaBuildpack::Container::SpringBootCLI"
 #  - "JavaBuildpack::Container::Tomcat"
 
