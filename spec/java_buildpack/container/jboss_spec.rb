@@ -7,19 +7,19 @@ require 'java_buildpack/container/jboss'
 describe JavaBuildpack::Container::Jboss do
   include_context 'component_helper'
 
-  it 'should detect WEB-INF',
+  it 'detects WEB-INF',
      app_fixture: 'container_tomcat' do
 
     expect(component.detect).to include("jboss=#{version}")
   end
 
-  it 'should not detect when WEB-INF is absent',
+  it 'does not detect when WEB-INF is absent',
      app_fixture: 'container_main' do
 
     expect(component.detect).to be_nil
   end
 
-  it 'should extract JBoss from a GZipped TAR',
+  it 'extracts JBoss from a GZipped TAR',
      app_fixture:   'container_tomcat',
      cache_fixture: 'stub-jboss.tar.gz' do
 
@@ -28,7 +28,7 @@ describe JavaBuildpack::Container::Jboss do
     expect(sandbox + 'bin/standalone.sh').to exist
   end
 
-  it 'should correctly manipulate the standalone configuration',
+  it 'manipulates the standalone configuration',
      app_fixture:   'container_tomcat',
      cache_fixture: 'stub-jboss.tar.gz' do
 
@@ -42,7 +42,7 @@ describe JavaBuildpack::Container::Jboss do
     expect(contents).to include('<virtual-server name="default-host" enable-welcome-root="false">')
   end
 
-  it 'should create a "ROOT.war.dodeploy" in the deployments directory',
+  it 'creates a "ROOT.war.dodeploy" in the deployments directory',
      app_fixture:   'container_tomcat',
      cache_fixture: 'stub-jboss.tar.gz' do
 
@@ -51,7 +51,7 @@ describe JavaBuildpack::Container::Jboss do
     expect(sandbox + 'standalone/deployments/ROOT.war.dodeploy').to exist
   end
 
-  it 'should copy only the application files and directories to the ROOT webapp',
+  it 'copies only the application files and directories to the ROOT webapp',
      app_fixture:   'container_tomcat',
      cache_fixture: 'stub-jboss.tar.gz' do
 
@@ -67,7 +67,7 @@ describe JavaBuildpack::Container::Jboss do
     expect(root_webapp + '.test-file').not_to exist
   end
 
-  it 'should return command',
+  it 'returns command',
      app_fixture: 'container_tomcat' do
 
     expect(component.release).to eq("#{java_home.as_env_var} JAVA_OPTS=\"test-opt-2 test-opt-1 -Dhttp.port=$PORT\" " \
