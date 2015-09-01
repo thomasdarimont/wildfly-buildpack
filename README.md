@@ -58,7 +58,7 @@ To learn how to configure various properties of the buildpack, follow the "Confi
 	* [Spring Boot](docs/container-spring_boot.md)
 	* [Spring Boot CLI](docs/container-spring_boot_cli.md) ([Configuration](docs/container-spring_boot_cli.md#configuration))
 * Standard Frameworks
-	* [AppDynamics Agent](docs/framework-app_dynamics_agent.md) ([Configuration](docs/framework-appdynamics_agent.md#configuration))
+	* [AppDynamics Agent](docs/framework-app_dynamics_agent.md) ([Configuration](docs/framework-app_dynamics_agent.md#configuration))
 	* [Introscope Agent](docs/framework-introscope_agent.md) ([Configuration](docs/framework-introscope_agent.md#configuration))
 	* [DynaTrace Agent](docs/framework-dyna_trace_agent.md) ([Configuration](docs/framework-dyna_trace_agent.md#configuration))
 	* [Java Options](docs/framework-java_opts.md) ([Configuration](docs/framework-java_opts.md#configuration))
