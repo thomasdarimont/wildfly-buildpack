@@ -41,6 +41,7 @@ module JavaBuildpack
         [
           @droplet.java_home.as_env_var,
           @droplet.java_opts.as_env_var,
+          'exec',
           "$PWD/#{(@droplet.sandbox + 'bin/standalone.sh').relative_path_from(@droplet.root)}",
           '-b',
           '0.0.0.0'
