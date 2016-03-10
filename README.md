@@ -1,8 +1,4 @@
 # Cloud Foundry JBoss Buildpack
-[![Build Status](https://travis-ci.org/cloudfoundry-community/jboss-buildpack.svg?branch=master)](https://travis-ci.org/cloudfoundry-community/jboss-buildpack)
-[![Dependency Status](https://gemnasium.com/cloudfoundry-community/jboss-buildpack.svg)](https://gemnasium.com/cloudfoundry-community/jboss-buildpack)
-[![Code Climate](https://codeclimate.com/github/cloudfoundry-community/jboss-buildpack.png)](https://codeclimate.com/github/cloudfoundry-community/jboss-buildpack)
-[![Code Climate](https://codeclimate.com/github/cloudfoundry-community/jboss-buildpack/coverage.png)](https://codeclimate.com/github/cloudfoundry-community/jboss-buildpack)
 
 The `jboss-buildpack` is a [Cloud Foundry][] buildpack for running JVM-based applications.  It is designed to run many JVM-based applications ([Grails][], [Groovy][], Java Main, [Play Framework][], [Spring Boot][], and Servlet) with no additional configuration, but supports configuration of the standard components, and extension to add custom components.
 
