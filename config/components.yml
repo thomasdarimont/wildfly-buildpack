@@ -20,6 +20,7 @@ containers:
   - "JavaBuildpack::Container::Groovy"
   - "JavaBuildpack::Container::JavaMain"
   - "JavaBuildpack::Container::Jboss"
+  - "JavaBuildpack::Container::Wildfly"
   - "JavaBuildpack::Container::PlayFramework"
   - "JavaBuildpack::Container::Ratpack"
   - "JavaBuildpack::Container::SpringBoot"

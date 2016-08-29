@@ -36,6 +36,6 @@ module Package
 
   STAGING_DIR = "#{BUILD_DIR}/staging".freeze
 
-  PACKAGE_NAME = "#{BUILD_DIR}/jboss-buildpack#{offline}-#{version}.zip".freeze
+  PACKAGE_NAME = "#{BUILD_DIR}/wildfly-buildpack#{offline}-#{version}.zip".freeze
 
 end
