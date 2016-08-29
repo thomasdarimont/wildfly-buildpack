@@ -1,5 +1,5 @@
 ---
-version: 10.1.0.Final
+version: 10.1.+
 #repository_root: "{default.repository.root}/wildfly"
 repository_root: "http://download.jboss.org/wildfly/10.1.0.Final/wildfly"
 
