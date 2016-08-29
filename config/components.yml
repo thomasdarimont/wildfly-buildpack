@@ -19,7 +19,7 @@ containers:
   - "JavaBuildpack::Container::DistZip"
   - "JavaBuildpack::Container::Groovy"
   - "JavaBuildpack::Container::JavaMain"
-  - "JavaBuildpack::Container::Jboss"
+#  - "JavaBuildpack::Container::Jboss"
   - "JavaBuildpack::Container::Wildfly"
   - "JavaBuildpack::Container::PlayFramework"
   - "JavaBuildpack::Container::Ratpack"
