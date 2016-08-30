@@ -1,6 +1,6 @@
-# Cloud Foundry JBoss Buildpack
+# Cloud Foundry Wildfly Buildpack
 
-The `jboss-buildpack` is a [Cloud Foundry][] buildpack for running JVM-based applications.  It is designed to run many JVM-based applications ([Grails][], [Groovy][], Java Main, [Play Framework][], [Spring Boot][], and Servlet) with no additional configuration, but supports configuration of the standard components, and extension to add custom components.
+The `wildfly-buildpack` is a [Cloud Foundry][] buildpack for running JVM-based applications.  It is designed to run many JVM-based applications ([Grails][], [Groovy][], Java Main, [Play Framework][], [Spring Boot][], [Java EE][] and Servlet) with no additional configuration, but supports configuration of the standard components, and extension to add custom components.
 
 This buildpack has been customised to use JBoss Application Server. The standard Java Buildpack currently uses Tomcat.
 
@@ -8,7 +8,7 @@ This buildpack has been customised to use JBoss Application Server. The standard
 To use this buildpack specify the URI of the repository when pushing an application to Cloud Foundry:
 
 ```bash
-$ cf push <APP-NAME> -p <ARTIFACT> -b https://github.com/cloudfoundry-community/jboss-buildpack.git
+$ cf push <APP-NAME> -p <ARTIFACT> -b https://github.com/thomasdarimont/wildfly-buildpack.git
 ```
 
 ## Examples
