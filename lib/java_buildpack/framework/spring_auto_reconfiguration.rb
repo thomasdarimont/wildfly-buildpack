@@ -14,6 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+require 'fileutils'
 require 'java_buildpack/component/versioned_dependency_component'
 require 'java_buildpack/logging/logger_factory'
 require 'java_buildpack/framework'
@@ -38,7 +39,7 @@ module JavaBuildpack
       def compile
         download_jar
         @droplet.additional_libraries << (@droplet.sandbox + jar_name)
-
+        copy_spring_auto_configure_to_web_inf_lib
         modify_web_xml
       end
 
@@ -55,6 +56,11 @@ module JavaBuildpack
       end
 
       private
+
+      def copy_spring_auto_configure_to_web_inf_lib
+        webInfLib = @droplet.root + 'WEB-INF/lib/'
+        FileUtils.cp_r @droplet.sandbox + jar_name, webInfLib
+      end
 
       def modify_web_xml
         web_xml = @droplet.root + 'WEB-INF/web.xml'
