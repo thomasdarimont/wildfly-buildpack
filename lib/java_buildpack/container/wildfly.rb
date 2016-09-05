@@ -31,6 +31,7 @@ module JavaBuildpack
         download_tar
         update_configuration
         copy_application
+        create_jboss_web
         create_dodeploy
       end
 
@@ -60,6 +61,13 @@ module JavaBuildpack
       def copy_application
         FileUtils.mkdir_p root
         @application.root.children.each { |child| FileUtils.cp_r child, root }
+      end
+
+      def create_jboss_web
+        
+        jbossWebXml = webapps + 'ROOT.war/WEB-INF/jboss-web.xml'
+        File.write(jbossWebXml, '<jboss-web><context-root>/</context-root></jboss-web>')
+
       end
 
       def create_dodeploy
